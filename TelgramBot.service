@@ -1,0 +1,13 @@
+[Unit]
+Description="服务说明"      
+[Service]
+Type=simple
+GuessMainPID=true
+WorkingDirectory=//项目路径
+StandardOutput=journal
+StandardError=journal
+ExecStart=/usr/bin/dotnet 项目文件dll  //启动指令
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
