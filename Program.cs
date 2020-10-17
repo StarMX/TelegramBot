@@ -1,7 +1,9 @@
 ﻿using MihaZupan;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Telegram.Bot;
+using Fleck;
 
 namespace StarZ.TelegramBot
 {
@@ -47,6 +49,32 @@ namespace StarZ.TelegramBot
             await bot.Client.TelegramClient.SendTextMessageAsync(511550148, "TelegramBot Start");
             Console.WriteLine("TelegramBot Start");
             bot.Start();
+
+            FleckLog.Level = LogLevel.Info;
+            var allSockets = new List<IWebSocketConnection>();
+            var server = new WebSocketServer("ws://0.0.0.0:8181")
+            {
+                RestartAfterListenError = true
+            };
+            server.Start(socket =>
+            {
+                socket.OnOpen = () =>
+                {
+                    Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress}:{socket.ConnectionInfo.ClientPort} Open!");
+                    allSockets.Add(socket);
+                };
+                socket.OnClose = () =>
+                {
+                    Console.WriteLine($"{socket.ConnectionInfo.ClientIpAddress}:{socket.ConnectionInfo.ClientPort} Close!");
+                    allSockets.Remove(socket);
+                };
+                socket.OnMessage = message =>
+                {
+                    Console.WriteLine(message);
+                    allSockets.ToList().ForEach(s => s.Send($"{socket.ConnectionInfo.ClientIpAddress}:{socket.ConnectionInfo.ClientPort} Echo: " + message));
+                };
+            });
+
 
             Console.ReadLine();
             bot.Stop();
